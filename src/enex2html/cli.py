@@ -11,13 +11,13 @@ from .converter import EnexConverter
 def create_parser() -> argparse.ArgumentParser:
     """Create and configure the argument parser."""
     parser = argparse.ArgumentParser(
-        prog="enex2html",
+        prog="enex-html-archive",
         description="Convert Evernote .enex files to individual HTML files with media preservation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  enex2html --input-dir ./notes --output-dir ./html-output
-  enex2html -i ~/Documents/Evernote -o ~/Sites/notes
+  enex-html-archive --input-dir ./notes --output-dir ./html-output
+  enex-html-archive -i ~/Documents/Evernote -o ~/Sites/notes
   
 The converter will:
   • Create a directory for each .enex file
@@ -30,7 +30,7 @@ The converter will:
     parser.add_argument(
         "--version",
         action="version", 
-        version=f"enex2html {__version__}"
+        version=f"enex-html-archive {__version__}"
     )
     
     parser.add_argument(
