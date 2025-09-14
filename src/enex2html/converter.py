@@ -13,18 +13,52 @@ class EnexConverter:
 
     def __init__(self, input_dir: str, output_dir: str) -> None:
         """Initialize the converter.
-        
+
         Args:
             input_dir: Directory containing .enex files
             output_dir: Directory to save output HTML files
         """
         self.input_dir = Path(input_dir)
         self.output_dir = Path(output_dir)
-        
+
         if not self.input_dir.exists():
             raise FileNotFoundError(f"Input directory does not exist: {input_dir}")
-        
+
         self.output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Load HTML templates
+        self.templates = self._load_templates()
+
+    def _load_templates(self) -> Dict[str, str]:
+        """Load HTML templates from the templates directory."""
+        templates_dir = Path(__file__).parent / "templates"
+        templates = {}
+
+        template_files = {
+            'note': 'note.html',
+            'enex_index': 'enex_index.html',
+            'main_toc': 'main_toc.html'
+        }
+
+        for template_name, filename in template_files.items():
+            template_path = templates_dir / filename
+            if template_path.exists():
+                templates[template_name] = template_path.read_text(encoding='utf-8')
+            else:
+                raise FileNotFoundError(f"Template file not found: {template_path}")
+
+        return templates
+
+    def _render_template(self, template: str, **kwargs) -> str:
+        """Simple template rendering that keeps HTML valid.
+
+        Uses <%variable%> syntax for placeholders, avoiding CSS conflicts.
+        """
+        result = template
+        for key, value in kwargs.items():
+            # Replace <%key%> with the actual value
+            result = result.replace(f"<%{key}%>", str(value))
+        return result
 
     @staticmethod
     def sanitize_filename(filename: str) -> str:
@@ -118,19 +152,19 @@ class EnexConverter:
         return notes, resources
 
     def process_note_content(self, content: str, resources: Dict, media_dir_relative: str) -> str:
-        """Process note content to update media references.
-        
+        """Process note content to update media references and clean problematic HTML.
+
         Args:
             content: Original note content
             resources: Resources dictionary
             media_dir_relative: Relative path to media directory
-            
+
         Returns:
             Processed content with updated media references
         """
         if not content:
             return content
-        
+
         # Find all media references in the content
         # ENEX uses <en-media> tags with hash attributes
         def replace_media(match):
@@ -143,133 +177,73 @@ class EnexConverter:
                 else:
                     return f'<a href="{media_dir_relative}/{filename}" target="_blank">{filename}</a>'
             return match.group(0)  # Return original if not found
-        
+
         # Replace en-media tags
         content = re.sub(r'<en-media[^>]*hash="([^"]*)"[^>]*/?>', replace_media, content)
-        
+
+        # Clean up problematic HTML elements that can break page layout
+        # Remove or fix absolutely positioned elements that cover the whole page
+        content = re.sub(
+            r'<div[^>]*position\s*:\s*absolute[^>]*width\s*:\s*100%[^>]*z-index\s*:\s*\d+[^>]*>.*?</div>',
+            '',
+            content,
+            flags=re.DOTALL | re.IGNORECASE
+        )
+
+        # Remove highslide overlay elements
+        content = re.sub(
+            r'<div[^>]*highslide[^>]*>.*?</div>',
+            '',
+            content,
+            flags=re.DOTALL | re.IGNORECASE
+        )
+
+        # Fix elements with extreme z-index values
+        content = re.sub(
+            r'z-index\s*:\s*\d{4,}',
+            'z-index: 1',
+            content,
+            flags=re.IGNORECASE
+        )
+
+        # Remove elements positioned off-screen that might be overlays
+        content = re.sub(
+            r'<[^>]*style\s*=\s*["\'][^"\']*top\s*:\s*-9999px[^"\']*["\'][^>]*>.*?</[^>]+>',
+            '',
+            content,
+            flags=re.DOTALL | re.IGNORECASE
+        )
+
         return content
 
     def create_note_html(self, note: Dict, enex_name: str, media_dir_relative: str = "media") -> str:
         """Create HTML content for a single note.
-        
+
         Args:
             note: Note dictionary with title, content, etc.
             enex_name: Name of the ENEX file
             media_dir_relative: Relative path to media directory
-            
+
         Returns:
             Complete HTML content for the note
         """
         title = note['title']
         content = note['content']
-        
-        return f"""<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>{title}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Open+Sans:wght@300;400&display=swap" rel="stylesheet">
-    <style>
-        body {{
-            font-family: 'Open Sans', sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            background: #f9f9f9;
-            padding: 20px;
-            color: #333;
-            line-height: 1.6;
-        }}
-        .header {{
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 3px solid #4CAF50;
-            padding-bottom: 20px;
-        }}
-        .note-title {{
-            font-family: 'Roboto', sans-serif;
-            font-size: 28px;
-            font-weight: 500;
-            color: #444;
-            margin: 0;
-        }}
-        .note-meta {{
-            color: #777;
-            font-size: 14px;
-            margin-top: 10px;
-        }}
-        .navigation {{
-            margin-bottom: 20px;
-            text-align: center;
-        }}
-        .nav-link {{
-            color: #007BFF;
-            text-decoration: none;
-            margin: 0 10px;
-            font-weight: 500;
-        }}
-        .nav-link:hover {{
-            text-decoration: underline;
-        }}
-        .note-content {{
-            background: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            font-size: 16px;
-            line-height: 1.8;
-        }}
-        .note-content img {{
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 15px auto;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }}
-        .note-content a {{
-            color: #007BFF;
-            text-decoration: none;
-        }}
-        .note-content a:hover {{
-            text-decoration: underline;
-        }}
-        @media (max-width: 768px) {{
-            body {{
-                margin: 10px;
-                padding: 15px;
-            }}
-            .note-content {{
-                padding: 20px;
-            }}
-        }}
-    </style>
-</head>
-<body>
-    <div class="navigation">
-        <a href="../index.html" class="nav-link">← Back to Table of Contents</a>
-        <a href="index.html" class="nav-link">← Back to {enex_name}</a>
-    </div>
-    
-    <div class="header">
-        <h1 class="note-title">{title}</h1>
-        <div class="note-meta">From: {enex_name}</div>
-    </div>
-    
-    <div class="note-content">
-        {content}
-    </div>
-</body>
-</html>"""
+
+        return self._render_template(self.templates['note'],
+            title=title,
+            enex_name=enex_name,
+            content=content
+        )
 
     def create_enex_index_html(self, enex_name: str, notes: List[Dict], enex_dir_name: str) -> str:
         """Create index.html for an ENEX directory.
-        
+
         Args:
             enex_name: Name of the ENEX file
             notes: List of notes
             enex_dir_name: Directory name for the ENEX
-            
+
         Returns:
             Complete HTML content for the ENEX index
         """
@@ -278,215 +252,37 @@ class EnexConverter:
             safe_title = self.sanitize_filename(note['title'])
             filename = f"note_{i+1:03d}_{safe_title}.html"
             note_links.append(f'<li><a href="{filename}">{note["title"]}</a></li>')
-        
-        return f"""<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>{enex_name} - Notes</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Open+Sans:wght@300;400&display=swap" rel="stylesheet">
-    <style>
-        body {{
-            font-family: 'Open Sans', sans-serif;
-            max-width: 1000px;
-            margin: 20px auto;
-            background: #f9f9f9;
-            padding: 20px;
-            color: #333;
-        }}
-        h1 {{
-            font-family: 'Roboto', sans-serif;
-            color: #444;
-            text-align: center;
-            font-weight: 500;
-            border-bottom: 3px solid #4CAF50;
-            padding-bottom: 15px;
-            margin-bottom: 30px;
-        }}
-        .navigation {{
-            text-align: center;
-            margin-bottom: 20px;
-        }}
-        .nav-link {{
-            color: #007BFF;
-            text-decoration: none;
-            font-weight: 500;
-        }}
-        .nav-link:hover {{
-            text-decoration: underline;
-        }}
-        .notes-list {{
-            background: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }}
-        .notes-list ul {{
-            list-style-type: none;
-            padding: 0;
-        }}
-        .notes-list li {{
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 4px;
-            border-left: 4px solid #4CAF50;
-        }}
-        .notes-list a {{
-            text-decoration: none;
-            font-weight: 500;
-            color: #333;
-            font-size: 16px;
-        }}
-        .notes-list a:hover {{
-            color: #4CAF50;
-        }}
-        .stats {{
-            text-align: center;
-            color: #777;
-            margin-top: 20px;
-        }}
-        @media (max-width: 768px) {{
-            body {{
-                margin: 10px;
-                padding: 15px;
-            }}
-            .notes-list {{
-                padding: 20px;
-            }}
-        }}
-    </style>
-</head>
-<body>
-    <div class="navigation">
-        <a href="../index.html" class="nav-link">← Back to Table of Contents</a>
-    </div>
-    
-    <h1>{enex_name}</h1>
-    
-    <div class="notes-list">
-        <h2>Notes in this collection ({len(notes)} total)</h2>
-        <ul>
-            {chr(10).join(note_links)}
-        </ul>
-    </div>
-    
-    <div class="stats">
-        <p>Collection: {enex_name} | {len(notes)} notes</p>
-    </div>
-</body>
-</html>"""
+
+        return self._render_template(self.templates['enex_index'],
+            enex_name=enex_name,
+            note_count=len(notes),
+            note_links='\n'.join(note_links)
+        )
 
     def create_main_toc_html(self, enex_collections: List[Tuple[str, int]]) -> str:
         """Create main table of contents HTML.
-        
+
         Args:
             enex_collections: List of (enex_name, note_count) tuples
-            
+
         Returns:
             Complete HTML content for the main table of contents
         """
         collection_links = []
         total_notes = 0
-        
+
         for enex_name, note_count in enex_collections:
             dir_name = self.sanitize_filename(enex_name.replace('.enex', ''))
             collection_links.append(
                 f'<li><a href="{dir_name}/index.html">{enex_name}</a> <span class="note-count">({note_count} notes)</span></li>'
             )
             total_notes += note_count
-        
-        return f"""<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Evernote Notes - Table of Contents</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Open+Sans:wght@300;400&display=swap" rel="stylesheet">
-    <style>
-        body {{
-            font-family: 'Open Sans', sans-serif;
-            max-width: 1000px;
-            margin: 20px auto;
-            background: #f9f9f9;
-            padding: 20px;
-            color: #333;
-        }}
-        h1 {{
-            font-family: 'Roboto', sans-serif;
-            color: #444;
-            text-align: center;
-            font-weight: 500;
-            border-bottom: 3px solid #4CAF50;
-            padding-bottom: 15px;
-            margin-bottom: 30px;
-        }}
-        .toc {{
-            background: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }}
-        .toc ul {{
-            list-style-type: none;
-            padding: 0;
-        }}
-        .toc li {{
-            margin-bottom: 15px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 4px;
-            border-left: 4px solid #4CAF50;
-        }}
-        .toc a {{
-            text-decoration: none;
-            font-weight: 500;
-            color: #333;
-            font-size: 18px;
-        }}
-        .toc a:hover {{
-            color: #4CAF50;
-        }}
-        .note-count {{
-            color: #777;
-            font-size: 14px;
-            font-weight: normal;
-        }}
-        .stats {{
-            text-align: center;
-            color: #777;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-        }}
-        @media (max-width: 768px) {{
-            body {{
-                margin: 10px;
-                padding: 15px;
-            }}
-            .toc {{
-                padding: 20px;
-            }}
-        }}
-    </style>
-</head>
-<body>
-    <h1>Evernote Notes Collection</h1>
-    
-    <div class="toc">
-        <h2>Available Collections</h2>
-        <ul>
-            {chr(10).join(collection_links)}
-        </ul>
-    </div>
-    
-    <div class="stats">
-        <p>Total Collections: {len(enex_collections)} | Total Notes: {total_notes}</p>
-        <p>Generated by enex-html-archive v0.1.0</p>
-    </div>
-</body>
-</html>"""
+
+        return self._render_template(self.templates['main_toc'],
+            collection_links='\n'.join(collection_links),
+            total_collections=len(enex_collections),
+            total_notes=total_notes
+        )
 
     def convert(self) -> None:
         """Convert all ENEX files in the input directory."""

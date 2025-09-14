@@ -18,7 +18,7 @@ def create_parser() -> argparse.ArgumentParser:
 Examples:
   enex-html-archive --input-dir ./notes --output-dir ./html-output
   enex-html-archive -i ~/Documents/Evernote -o ~/Sites/notes
-  
+
 The converter will:
   • Create a directory for each .enex file
   • Export each note to its own HTML file
@@ -54,7 +54,9 @@ The converter will:
         action="store_true",
         help="Enable verbose output"
     )
-    
+
+
+
     return parser
 
 
