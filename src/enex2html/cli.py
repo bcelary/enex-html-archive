@@ -55,7 +55,12 @@ The converter will:
         help="Enable verbose output"
     )
 
-
+    parser.add_argument(
+        "-t", "--theme",
+        choices=["light", "dark"],
+        default="dark",
+        help="Theme for the generated HTML (default: dark)"
+    )
 
     return parser
 
@@ -86,7 +91,7 @@ def main() -> int:
     
     try:
         # Create converter and run conversion
-        converter = EnexConverter(args.input_dir, args.output_dir)
+        converter = EnexConverter(args.input_dir, args.output_dir, args.theme)
         converter.convert()
         return 0
         

@@ -11,15 +11,17 @@ from typing import Dict, List, Tuple
 class EnexConverter:
     """Converts Evernote ENEX files to individual HTML files with media preservation."""
 
-    def __init__(self, input_dir: str, output_dir: str) -> None:
+    def __init__(self, input_dir: str, output_dir: str, theme: str = "dark") -> None:
         """Initialize the converter.
 
         Args:
             input_dir: Directory containing .enex files
             output_dir: Directory to save output HTML files
+            theme: Theme to use for templates ('light' or 'dark')
         """
         self.input_dir = Path(input_dir)
         self.output_dir = Path(output_dir)
+        self.theme = theme
 
         if not self.input_dir.exists():
             raise FileNotFoundError(f"Input directory does not exist: {input_dir}")
@@ -31,7 +33,7 @@ class EnexConverter:
 
     def _load_templates(self) -> Dict[str, str]:
         """Load HTML templates from the templates directory."""
-        templates_dir = Path(__file__).parent / "templates"
+        templates_dir = Path(__file__).parent / "templates" / self.theme
         templates = {}
 
         template_files = {
