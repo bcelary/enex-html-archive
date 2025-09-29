@@ -29,14 +29,17 @@ class EnexConverter:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Initialize components
-        template_engine = TemplateEngine(theme)
-        self.generator = HtmlGenerator(template_engine)
+        self.template_engine = TemplateEngine(theme)
+        self.generator = HtmlGenerator(self.template_engine)
 
     def convert(self) -> None:
         """Convert all ENEX files in the input directory."""
         enex_collections = []
 
         print("Processing ENEX files...")
+
+        # Copy theme assets (CSS files) to output directory
+        self.template_engine.copy_assets_to(self.output_dir)
 
         enex_files = list(self.input_dir.glob("*.enex"))
         if not enex_files:

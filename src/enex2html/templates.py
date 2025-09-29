@@ -1,5 +1,6 @@
 """Template loading and rendering engine."""
 
+import shutil
 from pathlib import Path
 from typing import Dict
 
@@ -18,7 +19,7 @@ class TemplateEngine:
 
     def _load_templates(self) -> Dict[str, str]:
         """Load HTML templates from the templates directory."""
-        templates_dir = Path(__file__).parent / "templates" / self.theme
+        templates_dir = Path(__file__).parent / "templates"
         templates = {}
 
         template_files = {
@@ -49,7 +50,28 @@ class TemplateEngine:
             Rendered template string
         """
         template = self.templates[template_name]
+
+        # Add theme name to kwargs so templates can construct their own paths
+        kwargs['theme'] = self.theme
+
         result = template
         for key, value in kwargs.items():
             result = result.replace(f"<%{key}%>", str(value))
         return result
+
+    def copy_assets_to(self, output_dir: Path) -> None:
+        """Copy theme CSS files to the output directory.
+
+        Args:
+            output_dir: Root output directory where HTML files will be generated
+        """
+        themes_dir = Path(__file__).parent / "themes"
+        output_themes_dir = output_dir / "themes"
+        output_themes_dir.mkdir(exist_ok=True)
+
+        # Copy the selected theme CSS file
+        theme_file = themes_dir / f"{self.theme}.css"
+        if theme_file.exists():
+            shutil.copy2(theme_file, output_themes_dir / f"{self.theme}.css")
+        else:
+            raise FileNotFoundError(f"Theme file not found: {theme_file}")
