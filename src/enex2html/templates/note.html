@@ -10,10 +10,12 @@
 </head>
 <body data-default-theme="<%theme%>">
     <div class="header-container">
-        <a href="index.html" class="back-button" aria-label="Back to collection">←</a>
         <h1 class="note-title"><%title%></h1>
     </div>
-    <div class="note-meta">From: <%enex_name%></div>
+    <div class="note-meta-nav">
+        <a href="index.html" class="back-button" aria-label="Back to collection">←</a>
+        <div class="note-meta">Collection: <%enex_name%></div>
+    </div>
 
     <div class="note-content">
         <%content%>

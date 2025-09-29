@@ -68,23 +68,28 @@ h2 {
     align-items: flex-start;
     justify-content: center;
     gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
     position: relative;
 }
 
 .back-button {
-    position: absolute;
-    left: 0;
-    top: 0;
     background: var(--bg-tertiary);
     color: var(--text-secondary);
     text-decoration: none;
     border-radius: var(--border-radius-sm);
-    padding: var(--spacing-xs) var(--spacing-sm);
+    padding: 0 var(--spacing-xs);
     font-size: var(--font-size-small);
     border: 1px solid var(--border-color);
     transition: all 0.2s ease;
     cursor: pointer;
+}
+
+/* Navigation row with back button and meta */
+.note-meta-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
 }
 
 .back-button:hover {
@@ -115,9 +120,8 @@ h2 {
 
 .note-meta {
     color: var(--text-secondary);
-    font-size: var(--font-size-small);
-    text-align: center;
-    margin-bottom: var(--spacing-lg);
+    font-size: var(--font-size-base);
+    margin: 0;
 }
 
 /* Note content */
@@ -163,7 +167,7 @@ h2 {
 
 .toc li {
     margin-bottom: var(--spacing-sm);
-    padding: var(--spacing-sm);
+    padding: var(--spacing-xs);
     background: var(--bg-tertiary);
     border-radius: var(--border-radius-sm);
     border-left: 4px solid var(--accent-primary);
