@@ -5,13 +5,16 @@ media preservation and beautiful styling.
 
 ## ✨ Features
 
-- **Individual HTML files**: Each note exported to its own HTML file
-- **Organized structure**: Each .enex file gets its own directory
-- **Media preservation**: Attachments and images extracted and linked properly
+- **Individual HTML files**: Each note exported to its own standalone HTML file
+- **Organized structure**: Each .enex file gets its own directory with navigation
+- **Media preservation**: Attachments and images extracted and linked properly in media/ directories
+- **Theme support**: Choose between light and dark themes for generated HTML
 - **Responsive design**: Mobile-friendly HTML with modern CSS
-- **Rich navigation**: Table of contents with hierarchical browsing
+- **Rich navigation**: Table of contents with hierarchical browsing across all notes
 - **Clean URLs**: Sanitized filenames for web compatibility
-- **Modern packaging**: Installable via pip/uv with proper entry points
+- **Modern packaging**: Proper Python package with CLI entry point
+- **Type safety**: Full type annotation throughout for better development experience
+- **Zero dependencies**: Pure Python implementation using only stdlib
 
 ## 📁 Exporting from Evernote
 
@@ -46,13 +49,22 @@ notes.
 # Install uv if you haven't already
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install enex-html-archive
+# Clone the repository
+git clone https://github.com/bcelary/enex-html-archive.git
+cd enex-html-archive
+
+# Install the package
 uv pip install .
 ```
 
 ### Using pip
 
 ```bash
+# Clone the repository
+git clone https://github.com/bcelary/enex-html-archive.git
+cd enex-html-archive
+
+# Install the package
 pip install .
 ```
 
@@ -63,8 +75,11 @@ pip install .
 git clone https://github.com/bcelary/enex-html-archive.git
 cd enex-html-archive
 
-# Install in development mode
+# Install in development mode with development dependencies
 uv pip install -e ".[dev]"
+
+# Install pre-commit hooks
+pre-commit install
 ```
 
 ## 📖 Usage
@@ -76,8 +91,14 @@ enex-html-archive --input-dir /path/to/enex/files --output-dir /path/to/output
 # Short form
 enex-html-archive -i ~/Documents/Evernote -o ~/Sites/notes
 
+# With light theme
+enex-html-archive -i ./notes -o ./html-output --theme light
+
 # With verbose output
 enex-html-archive -i ./notes -o ./html-output --verbose
+
+# Run as Python module
+python -m enex2html -i ./notes -o ./html-output
 
 # Show help
 enex-html-archive --help
@@ -102,20 +123,18 @@ output-dir/
         └── food_photo.jpg
 ```
 
-## 🎯 Features
-
-- **Individual note files**: Each note now has its own HTML file
-- **Media extraction**: Images and attachments properly preserved
-- **Better organization**: Directory per ENEX file with clean structure
-- **Modern packaging**: Proper Python package with CLI entry point
-- **Responsive design**: Mobile-friendly layouts
-- **Type hints**: Full type annotation for better development experience
 
 ## 🛠 Development
 
 ```bash
 # Install development dependencies
 uv pip install -e ".[dev]"
+
+# Install pre-commit hooks
+pre-commit install
+
+# Run pre-commit on all files
+pre-commit run --all-files
 
 # Run type checking
 mypy src/enex2html
