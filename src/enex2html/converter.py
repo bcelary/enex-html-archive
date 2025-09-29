@@ -34,7 +34,7 @@ class EnexConverter:
 
     def convert(self) -> None:
         """Convert all ENEX files in the input directory."""
-        enex_collections = []
+        enex_notebooks = []
 
         print("Processing ENEX files...")
 
@@ -51,9 +51,11 @@ class EnexConverter:
 
             notes, resources = EnexParser.parse_enex_file(enex_file)
 
-            # Create directory for this ENEX file
+            # Create directory for this ENEX file under notebooks/
             enex_dir_name = sanitize_filename(enex_file.stem)
-            enex_dir_path = self.output_dir / enex_dir_name
+            notebooks_dir = self.output_dir / "notebooks"
+            notebooks_dir.mkdir(exist_ok=True)
+            enex_dir_path = notebooks_dir / enex_dir_name
             enex_dir_path.mkdir(exist_ok=True)
 
             # Create media directory if we have resources
@@ -89,24 +91,24 @@ class EnexConverter:
             index_filepath = enex_dir_path / "index.html"
             index_filepath.write_text(index_html, encoding="utf-8")
 
-            enex_collections.append((enex_file.name, len(notes)))
+            enex_notebooks.append((enex_file.name, len(notes)))
             print(f"  Processed {len(notes)} notes, {len(resources)} media files")
 
         # Create main table of contents
-        main_toc_html = self.generator.toc(enex_collections)
+        main_toc_html = self.generator.toc(enex_notebooks)
         main_toc_filepath = self.output_dir / "index.html"
         main_toc_filepath.write_text(main_toc_html, encoding="utf-8")
 
-        total_notes = sum(count for _, count in enex_collections)
+        total_notes = sum(count for _, count in enex_notebooks)
 
         print("\n✅ Export complete!")
         print("\nSummary:")
-        print(f"  • {len(enex_collections)} ENEX files processed")
+        print(f"  • {len(enex_notebooks)} ENEX files processed")
         print(f"  • {total_notes:,} total notes exported")
         print(f"  • Main index: {main_toc_filepath}")
 
         print("\nNotebooks:")
-        for enex_name, note_count in enex_collections:
+        for enex_name, note_count in enex_notebooks:
             # Remove .enex extension for display
             notebook_name = enex_name.replace(".enex", "")
             # Calculate padding for alignment (max 40 chars for name)

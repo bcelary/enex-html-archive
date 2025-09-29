@@ -30,10 +30,10 @@
      * @param {string} theme - The theme name to apply
      */
     function applyTheme(theme) {
-        const link = document.querySelector('link[rel="stylesheet"][href*="themes/"]');
+        const link = document.querySelector('link[rel="stylesheet"][href*="css/"]');
         if (link) {
-            // Update the href to point to the selected theme
-            link.href = link.href.replace(/themes\/(light|dark)\.css/, `themes/${theme}.css`);
+            // Update the href to point to the selected theme, handling relative paths
+            link.href = link.href.replace(/css\/(light|dark)\.css/, `css/${theme}.css`);
         }
     }
 

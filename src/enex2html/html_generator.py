@@ -60,11 +60,11 @@ class HtmlGenerator:
             note_links="\n".join(note_links),
         )
 
-    def toc(self, collections: list[tuple[str, int]]) -> str:
+    def toc(self, notebooks: list[tuple[str, int]]) -> str:
         """Generate main table of contents HTML.
 
         Args:
-            collections: List of (enex_name, note_count) tuples
+            notebooks: List of (enex_name, note_count) tuples
 
         Returns:
             Complete HTML content for the main table of contents
@@ -72,12 +72,12 @@ class HtmlGenerator:
         collection_links = []
         total_notes = 0
 
-        for enex_name, note_count in collections:
+        for enex_name, note_count in notebooks:
             # Remove .enex extension for both directory name and display
             display_name = enex_name.replace(".enex", "")
             dir_name = sanitize_filename(display_name)
             collection_links.append(
-                f'<li><a href="{dir_name}/index.html">{display_name}</a> '
+                f'<li><a href="notebooks/{dir_name}/index.html">{display_name}</a> '
                 f'<span class="note-count">({note_count} notes)</span></li>'
             )
             total_notes += note_count
@@ -85,6 +85,6 @@ class HtmlGenerator:
         return self.engine.render(
             "main_toc",
             collection_links="\n".join(collection_links),
-            total_collections=len(collections),
+            total_collections=len(notebooks),
             total_notes=total_notes,
         )

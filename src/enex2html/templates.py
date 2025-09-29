@@ -68,22 +68,27 @@ class TemplateEngine:
         Args:
             output_dir: Root output directory where HTML files will be generated
         """
-        themes_dir = Path(__file__).parent / "themes"
-        templates_dir = Path(__file__).parent / "templates"
-        output_themes_dir = output_dir / "themes"
-        output_themes_dir.mkdir(exist_ok=True)
+        assets_dir_source = Path(__file__).parent / "assets"
 
-        # Copy all theme CSS files (light and dark)
+        # Create assets directory structure
+        assets_dir = output_dir / "assets"
+        css_dir = assets_dir / "css"
+        js_dir = assets_dir / "js"
+
+        css_dir.mkdir(parents=True, exist_ok=True)
+        js_dir.mkdir(parents=True, exist_ok=True)
+
+        # Copy all theme CSS files to assets/css/
         for theme_name in ["light", "dark"]:
-            theme_file = themes_dir / f"{theme_name}.css"
+            theme_file = assets_dir_source / "css" / f"{theme_name}.css"
             if theme_file.exists():
-                shutil.copy2(theme_file, output_themes_dir / f"{theme_name}.css")
+                shutil.copy2(theme_file, css_dir / f"{theme_name}.css")
             else:
                 raise FileNotFoundError(f"Theme file not found: {theme_file}")
 
-        # Copy theme-switcher.js to the themes directory
-        js_file = templates_dir / "theme-switcher.js"
+        # Copy theme-switcher.js to assets/js/
+        js_file = assets_dir_source / "js" / "theme-switcher.js"
         if js_file.exists():
-            shutil.copy2(js_file, output_themes_dir / "theme-switcher.js")
+            shutil.copy2(js_file, js_dir / "theme-switcher.js")
         else:
             raise FileNotFoundError(f"JavaScript file not found: {js_file}")

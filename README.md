@@ -102,10 +102,10 @@ For best results with this converter, export your notes strategically from Evern
 
 ```
 input-folder/
-├── Work_Notes.enex          # Work notebook → work-notes/ directory
-├── Personal_Journal.enex    # Personal → personal-journal/ directory
-├── Recipes.enex             # Recipes → recipes/ directory
-└── Travel_Plans.enex        # Travel → travel-plans/ directory
+├── Work_Notes.enex
+├── Personal_Journal.enex
+├── Recipes.enex
+└── Travel_Plans.enex
 ```
 
 This approach ensures clean organization and makes it easier to navigate your converted notes.
@@ -114,19 +114,26 @@ This approach ensures clean organization and makes it easier to navigate your co
 
 ```
 output-dir/
-├── index.html                    # Main table of contents
-├── notebook-1/
-│   ├── index.html               # Notes in this notebook
-│   ├── note_001_meeting_notes.html
-│   ├── note_002_project_plan.html
-│   └── media/                   # Attachments and images
-│       ├── screenshot.png
-│       └── document.pdf
-└── notebook-2/
-    ├── index.html
-    ├── note_001_recipe.html
-    └── media/
-        └── food_photo.jpg
+├── index.html                          # Main table of contents
+├── assets/                             # CSS and JavaScript assets
+│   ├── css/                            # Theme CSS files
+│   │   ├── dark.css
+│   │   └── light.css
+│   └── js/                             # JavaScript files
+│       └── theme-switcher.js
+└── notebooks/                          # Notebook directories
+    ├── Personal_Journal/
+    │   ├── index.html                  # Notes in this notebook
+    │   ├── note_001_meeting_notes.html
+    │   ├── note_002_project_plan.html
+    │   └── media/                      # Notes resources (images, attachments, ...)
+    │       ├── screenshot.png
+    │       └── document.pdf
+    └── Recipes/
+        ├── index.html
+        ├── note_001_recipe.html
+        └── media/
+            └── food_photo.jpg
 ```
 
 ## 🛠 Development
