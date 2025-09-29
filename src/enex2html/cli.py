@@ -59,7 +59,7 @@ The converter will:
         "-t", "--theme",
         choices=["light", "dark"],
         default="dark",
-        help="Theme for the generated HTML (default: dark)"
+        help="Default theme for the generated HTML; users can switch themes in the browser (default: dark)"
     )
 
     return parser

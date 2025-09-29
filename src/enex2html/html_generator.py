@@ -27,10 +27,13 @@ class HtmlGenerator:
         Returns:
             Complete HTML content for the note
         """
+        # Remove .enex extension for display
+        display_name = enex_name.replace('.enex', '')
+
         return self.engine.render(
             'note',
             title=note['title'],
-            enex_name=enex_name,
+            enex_name=display_name,
             content=note['content']
         )
 
@@ -44,6 +47,9 @@ class HtmlGenerator:
         Returns:
             Complete HTML content for the ENEX index
         """
+        # Remove .enex extension for display
+        display_name = enex_name.replace('.enex', '')
+
         note_links = []
         for i, note in enumerate(notes):
             safe_title = sanitize_filename(note['title'])
@@ -52,7 +58,7 @@ class HtmlGenerator:
 
         return self.engine.render(
             'enex_index',
-            enex_name=enex_name,
+            enex_name=display_name,
             note_count=len(notes),
             note_links='\n'.join(note_links)
         )
@@ -70,9 +76,11 @@ class HtmlGenerator:
         total_notes = 0
 
         for enex_name, note_count in collections:
-            dir_name = sanitize_filename(enex_name.replace('.enex', ''))
+            # Remove .enex extension for both directory name and display
+            display_name = enex_name.replace('.enex', '')
+            dir_name = sanitize_filename(display_name)
             collection_links.append(
-                f'<li><a href="{dir_name}/index.html">{enex_name}</a> '
+                f'<li><a href="{dir_name}/index.html">{display_name}</a> '
                 f'<span class="note-count">({note_count} notes)</span></li>'
             )
             total_notes += note_count

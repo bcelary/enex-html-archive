@@ -54,24 +54,36 @@ class TemplateEngine:
         # Add theme name to kwargs so templates can construct their own paths
         kwargs['theme'] = self.theme
 
+        # Add theme button text (shows the theme you'll switch TO, not current theme)
+        kwargs['theme_button_text'] = '☀️ Light' if self.theme == 'dark' else '🌙 Dark'
+
         result = template
         for key, value in kwargs.items():
             result = result.replace(f"<%{key}%>", str(value))
         return result
 
     def copy_assets_to(self, output_dir: Path) -> None:
-        """Copy theme CSS files to the output directory.
+        """Copy theme CSS files and JavaScript to the output directory.
 
         Args:
             output_dir: Root output directory where HTML files will be generated
         """
         themes_dir = Path(__file__).parent / "themes"
+        templates_dir = Path(__file__).parent / "templates"
         output_themes_dir = output_dir / "themes"
         output_themes_dir.mkdir(exist_ok=True)
 
-        # Copy the selected theme CSS file
-        theme_file = themes_dir / f"{self.theme}.css"
-        if theme_file.exists():
-            shutil.copy2(theme_file, output_themes_dir / f"{self.theme}.css")
+        # Copy all theme CSS files (light and dark)
+        for theme_name in ["light", "dark"]:
+            theme_file = themes_dir / f"{theme_name}.css"
+            if theme_file.exists():
+                shutil.copy2(theme_file, output_themes_dir / f"{theme_name}.css")
+            else:
+                raise FileNotFoundError(f"Theme file not found: {theme_file}")
+
+        # Copy theme-switcher.js to the themes directory
+        js_file = templates_dir / "theme-switcher.js"
+        if js_file.exists():
+            shutil.copy2(js_file, output_themes_dir / "theme-switcher.js")
         else:
-            raise FileNotFoundError(f"Theme file not found: {theme_file}")
+            raise FileNotFoundError(f"JavaScript file not found: {js_file}")
