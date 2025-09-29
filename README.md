@@ -2,6 +2,23 @@
 
 A modern Python CLI tool to convert Evernote `.enex` files to individual HTML files with media preservation and beautiful styling.
 
+## 🚀 Quick Start
+
+```bash
+# Install uv (recommended)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Get the code
+git clone https://github.com/bcelary/enex-html-archive.git
+cd enex-html-archive
+
+# Install
+uv pip install .
+
+# Convert your notes
+enex-html-archive -i /path/to/enex/files -o /path/to/output
+```
+
 ## ✨ Features
 
 - **Individual HTML files**: Each note exported to its own standalone HTML file
@@ -14,6 +31,63 @@ A modern Python CLI tool to convert Evernote `.enex` files to individual HTML fi
 - **Modern packaging**: Proper Python package with CLI entry point
 - **Type safety**: Full type annotation throughout for better development experience
 - **Zero dependencies**: Pure Python implementation using only stdlib
+
+## 🚀 Installation
+
+### Get the code
+
+```bash
+git clone https://github.com/bcelary/enex-html-archive.git
+cd enex-html-archive
+```
+
+### Install with uv (recommended)
+
+```bash
+# Install uv if you haven't already
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install the package
+uv pip install .
+```
+
+### Install with pip
+
+```bash
+pip install .
+```
+
+### Development installation
+
+```bash
+# Install in development mode with development dependencies
+uv pip install -e ".[dev]"
+
+# Install pre-commit hooks
+pre-commit install
+```
+
+## 📖 Usage
+
+```bash
+# Basic usage
+enex-html-archive --input-dir /path/to/enex/files --output-dir /path/to/output
+
+# Short form
+enex-html-archive -i ~/Documents/Evernote -o ~/Sites/notes
+
+# With light theme (default is dark)
+enex-html-archive -i ./notes -o ./html-output --theme light
+
+# With verbose output
+enex-html-archive -i ./notes -o ./html-output --verbose
+
+# Run as Python module (note: module name is enex2html)
+python -m enex2html -i ./notes -o ./html-output
+
+# Show help
+enex-html-archive --help
+```
 
 ## 📁 Exporting from Evernote
 
@@ -35,69 +109,6 @@ input-folder/
 ```
 
 This approach ensures clean organization and makes it easier to navigate your converted notes.
-
-## 🚀 Installation
-
-### Using uv (recommended)
-
-```bash
-# Install uv if you haven't already
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Clone the repository
-git clone https://github.com/bcelary/enex-html-archive.git
-cd enex-html-archive
-
-# Install the package
-uv pip install .
-```
-
-### Using pip
-
-```bash
-# Clone the repository
-git clone https://github.com/bcelary/enex-html-archive.git
-cd enex-html-archive
-
-# Install the package
-pip install .
-```
-
-### Development installation
-
-```bash
-# Clone the repository
-git clone https://github.com/bcelary/enex-html-archive.git
-cd enex-html-archive
-
-# Install in development mode with development dependencies
-uv pip install -e ".[dev]"
-
-# Install pre-commit hooks
-pre-commit install
-```
-
-## 📖 Usage
-
-```bash
-# Basic usage
-enex-html-archive --input-dir /path/to/enex/files --output-dir /path/to/output
-
-# Short form
-enex-html-archive -i ~/Documents/Evernote -o ~/Sites/notes
-
-# With light theme
-enex-html-archive -i ./notes -o ./html-output --theme light
-
-# With verbose output
-enex-html-archive -i ./notes -o ./html-output --verbose
-
-# Run as Python module
-python -m enex2html -i ./notes -o ./html-output
-
-# Show help
-enex-html-archive --help
-```
 
 ## 📁 Output Structure
 
@@ -121,12 +132,6 @@ output-dir/
 ## 🛠 Development
 
 ```bash
-# Install development dependencies
-uv pip install -e ".[dev]"
-
-# Install pre-commit hooks
-pre-commit install
-
 # Run pre-commit on all files
 pre-commit run --all-files
 
