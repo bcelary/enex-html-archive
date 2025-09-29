@@ -2,11 +2,15 @@
 
 import base64
 import hashlib
+import logging
+import mimetypes
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Dict, List, Tuple
 
 from .utils import sanitize_filename
+
+logger = logging.getLogger(__name__)
 
 
 class EnexParser:
@@ -16,21 +20,59 @@ class EnexParser:
     def _get_extension_for_mime(mime_type: str) -> str:
         """Get file extension for a given MIME type.
 
+        Uses multiple fallback strategies to ensure all MIME types get proper extensions:
+        1. Python's mimetypes module (comprehensive standard library mapping)
+        2. Extract extension from MIME type subtype (e.g., video/mp4 -> .mp4)
+        3. Use .bin as final fallback
+
         Args:
             mime_type: MIME type string
 
         Returns:
-            File extension including the dot, or empty string if unknown
+            File extension including the dot (always returns at least .bin)
         """
-        mime_map = {
-            'image/jpeg': '.jpg',
-            'image/png': '.png',
-            'image/gif': '.gif',
-            'image/bmp': '.bmp',
-            'application/pdf': '.pdf',
-            'text/plain': '.txt'
+        if not mime_type or not mime_type.strip():
+            logger.warning("Empty MIME type encountered, using .bin extension")
+            return '.bin'
+
+        mime_type = mime_type.strip()
+
+        # Remove MIME type parameters (e.g., "text/plain; charset=utf-8" -> "text/plain")
+        base_mime = mime_type.split(';')[0].strip()
+
+        # Strategy 1: Use Python's mimetypes module
+        ext = mimetypes.guess_extension(base_mime, strict=False)
+        if ext:
+            # mimetypes sometimes returns .jpe for image/jpeg, prefer .jpg
+            if ext == '.jpe':
+                return '.jpg'
+            return ext
+
+        # Handle special cases not in mimetypes module
+        special_cases = {
+            'application/vnd.amazon.ebook': '.azw',
+            'audio/x-m4a': '.m4a',
+            'audio/x-aac': '.aac',
         }
-        return mime_map.get(mime_type or '', '')
+        if base_mime in special_cases:
+            return special_cases[base_mime]
+
+        # Strategy 2: Extract extension from MIME type subtype
+        # e.g., "video/mp4" -> ".mp4", "image/svg+xml" -> ".svg"
+        try:
+            subtype = base_mime.split('/')[-1]
+            # Handle composite types like "svg+xml"
+            subtype = subtype.split('+')[0]
+            if subtype and subtype.isalnum():
+                ext = f'.{subtype}'
+                logger.info(f"Extracted extension '{ext}' from MIME type '{base_mime}'")
+                return ext
+        except Exception:
+            pass
+
+        # Strategy 3: Final fallback
+        logger.warning(f"Unknown MIME type '{mime_type}', using .bin extension")
+        return '.bin'
 
     @staticmethod
     def _extract_resources(root: ET.Element) -> Dict:
