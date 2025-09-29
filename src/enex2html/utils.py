@@ -15,11 +15,13 @@ def sanitize_filename(filename: str) -> str:
     if not filename:
         return "untitled"
 
-    # Remove or replace invalid characters
-    filename = re.sub(r'[<>:"/\\|?*]', "_", filename)
-    # Limit length
-    if len(filename) > 200:
-        filename = filename[:200]
-    # Remove leading/trailing spaces and dots
-    filename = filename.strip(". ")
+    # Remove or replace invalid characters (including # which causes URL issues)
+    filename = re.sub(r'[<>:"/\\|?*#]', "_", filename)
+    # Collapse multiple consecutive spaces or underscores
+    filename = re.sub(r"[ _]+", "_", filename)
+    # Limit length to 150 chars (accounts for note_XXX_ prefix, .html suffix, and URL encoding)
+    if len(filename) > 150:
+        filename = filename[:150]
+    # Remove leading/trailing spaces, dots, and underscores
+    filename = filename.strip("_. ")
     return filename if filename else "untitled"
