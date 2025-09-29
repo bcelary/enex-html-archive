@@ -62,21 +62,45 @@ h2 {
     font-size: var(--font-size-subheading);
 }
 
-/* Navigation */
-.navigation {
-    text-align: center;
+/* Header with back button */
+.header-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: var(--spacing-sm);
     margin-bottom: var(--spacing-md);
+    position: relative;
 }
 
-.nav-link {
-    color: var(--accent-secondary);
+.back-button {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
     text-decoration: none;
-    margin: 0 var(--spacing-xs);
-    font-weight: 500;
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-small);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+    cursor: pointer;
 }
 
-.nav-link:hover {
-    text-decoration: underline;
+.back-button:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--accent-primary);
+}
+
+.back-button:focus {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+.header-container h1 {
+    margin: 0;
+    flex: 1;
 }
 
 /* Note header */
