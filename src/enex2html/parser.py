@@ -6,7 +6,7 @@ import logging
 import mimetypes
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any
 
 from .utils import sanitize_filename
 
@@ -33,26 +33,26 @@ class EnexParser:
         """
         if not mime_type or not mime_type.strip():
             logger.warning("Empty MIME type encountered, using .bin extension")
-            return '.bin'
+            return ".bin"
 
         mime_type = mime_type.strip()
 
         # Remove MIME type parameters (e.g., "text/plain; charset=utf-8" -> "text/plain")
-        base_mime = mime_type.split(';')[0].strip()
+        base_mime = mime_type.split(";")[0].strip()
 
         # Strategy 1: Use Python's mimetypes module
         ext = mimetypes.guess_extension(base_mime, strict=False)
         if ext:
             # mimetypes sometimes returns .jpe for image/jpeg, prefer .jpg
-            if ext == '.jpe':
-                return '.jpg'
+            if ext == ".jpe":
+                return ".jpg"
             return ext
 
         # Handle special cases not in mimetypes module
         special_cases = {
-            'application/vnd.amazon.ebook': '.azw',
-            'audio/x-m4a': '.m4a',
-            'audio/x-aac': '.aac',
+            "application/vnd.amazon.ebook": ".azw",
+            "audio/x-m4a": ".m4a",
+            "audio/x-aac": ".aac",
         }
         if base_mime in special_cases:
             return special_cases[base_mime]
@@ -60,22 +60,22 @@ class EnexParser:
         # Strategy 2: Extract extension from MIME type subtype
         # e.g., "video/mp4" -> ".mp4", "image/svg+xml" -> ".svg"
         try:
-            subtype = base_mime.split('/')[-1]
+            subtype = base_mime.split("/")[-1]
             # Handle composite types like "svg+xml"
-            subtype = subtype.split('+')[0]
+            subtype = subtype.split("+")[0]
             if subtype and subtype.isalnum():
-                ext = f'.{subtype}'
+                ext = f".{subtype}"
                 logger.info(f"Extracted extension '{ext}' from MIME type '{base_mime}'")
                 return ext
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Could not extract extension from MIME subtype: {e}")
 
         # Strategy 3: Final fallback
         logger.warning(f"Unknown MIME type '{mime_type}', using .bin extension")
-        return '.bin'
+        return ".bin"
 
     @staticmethod
-    def _extract_resources(root: ET.Element) -> Dict:
+    def _extract_resources(root: ET.Element) -> dict[str, tuple[str, bytes, str]]:
         """Extract resources from ENEX XML root.
 
         Args:
@@ -91,14 +91,20 @@ class EnexParser:
             mime_elem = resource.find("mime")
             attributes_elem = resource.find("resource-attributes")
 
-            if data_elem is not None and mime_elem is not None and data_elem.text is not None and mime_elem.text is not None:
+            if (
+                data_elem is not None
+                and mime_elem is not None
+                and data_elem.text is not None
+                and mime_elem.text is not None
+            ):
                 # Decode base64 data
                 try:
                     resource_data = base64.b64decode(data_elem.text)
                     mime_type = mime_elem.text
 
                     # Generate hash for the resource
-                    resource_hash = hashlib.md5(resource_data).hexdigest()
+                    # MD5 required by ENEX format for resource identification (not for security)
+                    resource_hash = hashlib.md5(resource_data).hexdigest()  # noqa: S324
 
                     # Try to get original filename
                     filename = None
@@ -112,14 +118,18 @@ class EnexParser:
                         ext = EnexParser._get_extension_for_mime(mime_type)
                         filename = f"resource_{resource_hash}{ext}"
 
-                    resources[resource_hash] = (mime_type, resource_data, sanitize_filename(filename))
+                    resources[resource_hash] = (
+                        mime_type,
+                        resource_data,
+                        sanitize_filename(filename),
+                    )
                 except Exception as e:
                     print(f"Warning: Failed to process resource: {e}")
 
         return resources
 
     @staticmethod
-    def _extract_notes(root: ET.Element) -> List[Dict]:
+    def _extract_notes(root: ET.Element) -> list[dict[str, Any]]:
         """Extract notes from ENEX XML root.
 
         Args:
@@ -132,9 +142,17 @@ class EnexParser:
 
         for note in root.findall(".//note"):
             title_elem = note.find("title")
-            title = title_elem.text if title_elem is not None and title_elem.text is not None else "Untitled"
+            title = (
+                title_elem.text
+                if title_elem is not None and title_elem.text is not None
+                else "Untitled"
+            )
             content_elem = note.find("content")
-            content = content_elem.text if content_elem is not None and content_elem.text is not None else "<p>No content</p>"
+            content = (
+                content_elem.text
+                if content_elem is not None and content_elem.text is not None
+                else "<p>No content</p>"
+            )
 
             # Extract creation and modification dates if available
             created = note.find("created")
@@ -143,17 +161,21 @@ class EnexParser:
             updated = note.find("updated")
             updated_date = updated.text if updated is not None else None
 
-            notes.append({
-                'title': title,
-                'content': content,
-                'created': created_date,
-                'updated': updated_date
-            })
+            notes.append(
+                {
+                    "title": title,
+                    "content": content,
+                    "created": created_date,
+                    "updated": updated_date,
+                }
+            )
 
         return notes
 
     @staticmethod
-    def parse_enex_file(enex_file: Path) -> Tuple[List[Dict], Dict]:
+    def parse_enex_file(
+        enex_file: Path,
+    ) -> tuple[list[dict[str, Any]], dict[str, tuple[str, bytes, str]]]:
         """Extract notes and resources from an Evernote ENEX file.
 
         Args:
@@ -162,7 +184,8 @@ class EnexParser:
         Returns:
             Tuple of (notes_list, resources_dict)
         """
-        tree = ET.parse(enex_file)
+        # XML parsing required for ENEX format (trusted Evernote export files)
+        tree = ET.parse(enex_file)  # noqa: S314
         root = tree.getroot()
 
         # Extract resources first

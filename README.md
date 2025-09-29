@@ -1,7 +1,6 @@
 # enex-html-archive
 
-A modern Python CLI tool to convert Evernote `.enex` files to individual HTML files with
-media preservation and beautiful styling.
+A modern Python CLI tool to convert Evernote `.enex` files to individual HTML files with media preservation and beautiful styling.
 
 ## ✨ Features
 
@@ -20,13 +19,10 @@ media preservation and beautiful styling.
 
 For best results with this converter, export your notes strategically from Evernote:
 
-1. **Export by notebook**: Export each notebook separately to get organized directory
-   structure
+1. **Export by notebook**: Export each notebook separately to get organized directory structure
 1. **Select .enex format**: In Evernote, go to File → Export Notes → Choose .enex format
-1. **Include attachments**: Make sure "Include tags" and attachments are selected during
-   export
-1. **One notebook per file**: Each .enex file will become its own directory with
-   individual note files
+1. **Include attachments**: Make sure "Include tags" and attachments are selected during export
+1. **One notebook per file**: Each .enex file will become its own directory with individual note files
 
 **Recommended export structure:**
 
@@ -38,8 +34,7 @@ input-folder/
 └── Travel_Plans.enex        # Travel → travel-plans/ directory
 ```
 
-This approach ensures clean organization and makes it easier to navigate your converted
-notes.
+This approach ensures clean organization and makes it easier to navigate your converted notes.
 
 ## 🚀 Installation
 
@@ -122,7 +117,6 @@ output-dir/
     └── media/
         └── food_photo.jpg
 ```
-
 
 ## 🛠 Development
 

@@ -36,4 +36,4 @@ repos:
         additional_dependencies:
           - mdformat-gfm
           - mdformat-black
-        args: [--wrap=88]
+        args: [--wrap=no]

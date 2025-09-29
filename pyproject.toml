@@ -132,8 +132,7 @@ strict_equality = true
 show_error_codes = true
 # Additional checks for None/Optional handling
 strict_optional = true
-warn_unused_imports = true
 
 [tool.mdformat]
-wrap = 88
+wrap = "no"
 number = false

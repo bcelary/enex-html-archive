@@ -16,10 +16,10 @@ def sanitize_filename(filename: str) -> str:
         return "untitled"
 
     # Remove or replace invalid characters
-    filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
+    filename = re.sub(r'[<>:"/\\|?*]', "_", filename)
     # Limit length
     if len(filename) > 200:
         filename = filename[:200]
     # Remove leading/trailing spaces and dots
-    filename = filename.strip('. ')
+    filename = filename.strip(". ")
     return filename if filename else "untitled"

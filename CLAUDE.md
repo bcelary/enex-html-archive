@@ -21,13 +21,13 @@ enex-html-archive -i ./input -o ./output --theme light
 uv pip install -e ".[dev]"
 
 # Install pre-commit hooks
-pre-commit install
+uv run pre-commit install
 
 # Run checks
-pre-commit run --all-files
-mypy src/enex2html
-ruff check src/enex2html
-black src/enex2html
+uv run pre-commit run --all-files
+uv run mypy src/enex2html
+uv run ruff check src/enex2html
+uv run black src/enex2html
 ```
 
 ## Project Structure
@@ -41,3 +41,7 @@ black src/enex2html
   - `templates.py` - Template engine
   - `templates/` - HTML templates
   - `themes/` - CSS themes (light/dark)
+
+## Code Quality Guidelines
+
+- Prefer fixing linting issues properly rather than adding suppressions (noqa comments)

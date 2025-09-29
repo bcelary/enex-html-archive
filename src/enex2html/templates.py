@@ -2,7 +2,7 @@
 
 import shutil
 from pathlib import Path
-from typing import Dict
+from typing import Any
 
 
 class TemplateEngine:
@@ -17,27 +17,27 @@ class TemplateEngine:
         self.theme = theme
         self.templates = self._load_templates()
 
-    def _load_templates(self) -> Dict[str, str]:
+    def _load_templates(self) -> dict[str, str]:
         """Load HTML templates from the templates directory."""
         templates_dir = Path(__file__).parent / "templates"
         templates = {}
 
         template_files = {
-            'note': 'note.html',
-            'enex_index': 'enex_index.html',
-            'main_toc': 'main_toc.html'
+            "note": "note.html",
+            "enex_index": "enex_index.html",
+            "main_toc": "main_toc.html",
         }
 
         for template_name, filename in template_files.items():
             template_path = templates_dir / filename
             if template_path.exists():
-                templates[template_name] = template_path.read_text(encoding='utf-8')
+                templates[template_name] = template_path.read_text(encoding="utf-8")
             else:
                 raise FileNotFoundError(f"Template file not found: {template_path}")
 
         return templates
 
-    def render(self, template_name: str, **kwargs) -> str:
+    def render(self, template_name: str, **kwargs: Any) -> str:
         """Render a template with variable substitution.
 
         Uses <%variable%> syntax for placeholders, avoiding CSS conflicts.
@@ -52,10 +52,10 @@ class TemplateEngine:
         template = self.templates[template_name]
 
         # Add theme name to kwargs so templates can construct their own paths
-        kwargs['theme'] = self.theme
+        kwargs["theme"] = self.theme
 
         # Add theme button text (shows the theme you'll switch TO, not current theme)
-        kwargs['theme_button_text'] = '☀️ Light' if self.theme == 'dark' else '🌙 Dark'
+        kwargs["theme_button_text"] = "☀️ Light" if self.theme == "dark" else "🌙 Dark"
 
         result = template
         for key, value in kwargs.items():
