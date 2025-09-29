@@ -1,11 +1,11 @@
 """Core converter logic for ENEX to HTML conversion."""
 
-import base64
-import hashlib
 import re
-import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Dict, List, Tuple
+
+from .parser import EnexParser
+from .utils import sanitize_filename
 
 
 class EnexConverter:
@@ -62,96 +62,6 @@ class EnexConverter:
             result = result.replace(f"<%{key}%>", str(value))
         return result
 
-    @staticmethod
-    def sanitize_filename(filename: str) -> str:
-        """Sanitize filename for safe file system use."""
-        if not filename:
-            return "untitled"
-        
-        # Remove or replace invalid characters
-        filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
-        # Limit length
-        if len(filename) > 200:
-            filename = filename[:200]
-        # Remove leading/trailing spaces and dots
-        filename = filename.strip('. ')
-        return filename if filename else "untitled"
-
-    def extract_notes_and_resources_from_enex(self, enex_file: Path) -> Tuple[List[Dict], Dict]:
-        """Extract notes and resources from an Evernote ENEX file.
-        
-        Args:
-            enex_file: Path to the .enex file
-            
-        Returns:
-            Tuple of (notes_list, resources_dict)
-        """
-        notes = []
-        resources = {}  # hash -> (mime_type, data, filename)
-        
-        tree = ET.parse(enex_file)
-        root = tree.getroot()
-
-        # Extract resources first
-        for resource in root.findall(".//resource"):
-            data_elem = resource.find("data")
-            mime_elem = resource.find("mime")
-            attributes_elem = resource.find("resource-attributes")
-            
-            if data_elem is not None and mime_elem is not None and data_elem.text is not None and mime_elem.text is not None:
-                # Decode base64 data
-                try:
-                    resource_data = base64.b64decode(data_elem.text)
-                    mime_type = mime_elem.text
-                    
-                    # Generate hash for the resource
-                    resource_hash = hashlib.md5(resource_data).hexdigest()
-                    
-                    # Try to get original filename
-                    filename = None
-                    if attributes_elem is not None:
-                        filename_elem = attributes_elem.find("filename")
-                        if filename_elem is not None:
-                            filename = filename_elem.text
-                    
-                    # Generate filename if not available
-                    if not filename:
-                        ext = {
-                            'image/jpeg': '.jpg',
-                            'image/png': '.png',
-                            'image/gif': '.gif',
-                            'image/bmp': '.bmp',
-                            'application/pdf': '.pdf',
-                            'text/plain': '.txt'
-                        }.get(mime_type or '', '')
-                        filename = f"resource_{resource_hash}{ext}"
-                    
-                    resources[resource_hash] = (mime_type, resource_data, self.sanitize_filename(filename))
-                except Exception as e:
-                    print(f"Warning: Failed to process resource: {e}")
-
-        # Extract notes
-        for note in root.findall(".//note"):
-            title_elem = note.find("title")
-            title = title_elem.text if title_elem is not None and title_elem.text is not None else "Untitled"
-            content_elem = note.find("content")
-            content = content_elem.text if content_elem is not None and content_elem.text is not None else "<p>No content</p>"
-            
-            # Extract creation and modification dates if available
-            created = note.find("created")
-            created_date = created.text if created is not None else None
-            
-            updated = note.find("updated") 
-            updated_date = updated.text if updated is not None else None
-            
-            notes.append({
-                'title': title,
-                'content': content,
-                'created': created_date,
-                'updated': updated_date
-            })
-
-        return notes, resources
 
     def process_note_content(self, content: str, resources: Dict, media_dir_relative: str) -> str:
         """Process note content to update media references and clean problematic HTML.
@@ -251,7 +161,7 @@ class EnexConverter:
         """
         note_links = []
         for i, note in enumerate(notes):
-            safe_title = self.sanitize_filename(note['title'])
+            safe_title = sanitize_filename(note['title'])
             filename = f"note_{i+1:03d}_{safe_title}.html"
             note_links.append(f'<li><a href="{filename}">{note["title"]}</a></li>')
 
@@ -274,7 +184,7 @@ class EnexConverter:
         total_notes = 0
 
         for enex_name, note_count in enex_collections:
-            dir_name = self.sanitize_filename(enex_name.replace('.enex', ''))
+            dir_name = sanitize_filename(enex_name.replace('.enex', ''))
             collection_links.append(
                 f'<li><a href="{dir_name}/index.html">{enex_name}</a> <span class="note-count">({note_count} notes)</span></li>'
             )
@@ -299,11 +209,11 @@ class EnexConverter:
         
         for enex_file in enex_files:
             print(f"Processing: {enex_file.name}")
-            
-            notes, resources = self.extract_notes_and_resources_from_enex(enex_file)
-            
+
+            notes, resources = EnexParser.parse_enex_file(enex_file)
+
             # Create directory for this ENEX file
-            enex_dir_name = self.sanitize_filename(enex_file.stem)
+            enex_dir_name = sanitize_filename(enex_file.stem)
             enex_dir_path = self.output_dir / enex_dir_name
             enex_dir_path.mkdir(exist_ok=True)
             
@@ -322,9 +232,9 @@ class EnexConverter:
             for i, note in enumerate(notes):
                 # Process content to update media references
                 note['content'] = self.process_note_content(note['content'], resources, "media")
-                
+
                 # Create individual note HTML file
-                safe_title = self.sanitize_filename(note['title'])
+                safe_title = sanitize_filename(note['title'])
                 note_filename = f"note_{i+1:03d}_{safe_title}.html"
                 note_filepath = enex_dir_path / note_filename
                 
@@ -350,7 +260,7 @@ class EnexConverter:
         
         total_notes = sum(count for _, count in enex_collections)
         print(f"✅ Total notes exported: {total_notes}")
-        
+
         for enex_name, note_count in enex_collections:
-            dir_name = self.sanitize_filename(enex_name.replace('.enex', ''))
+            dir_name = sanitize_filename(enex_name.replace('.enex', ''))
             print(f"   - {enex_name}: {note_count} notes in {self.output_dir}/{dir_name}/")
