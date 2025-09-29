@@ -93,13 +93,19 @@ class EnexConverter:
         main_toc_filepath = self.output_dir / "index.html"
         main_toc_filepath.write_text(main_toc_html, encoding="utf-8")
 
-        print(f"\n✅ Processing complete!")
-        print(f"✅ Main index saved as: {main_toc_filepath}")
-        print(f"✅ Processed {len(enex_collections)} ENEX files")
-
         total_notes = sum(count for _, count in enex_collections)
-        print(f"✅ Total notes exported: {total_notes}")
 
+        print(f"\n✅ Export complete!")
+        print(f"\nSummary:")
+        print(f"  • {len(enex_collections)} ENEX files processed")
+        print(f"  • {total_notes:,} total notes exported")
+        print(f"  • Main index: {main_toc_filepath}")
+
+        print(f"\nNotebooks:")
         for enex_name, note_count in enex_collections:
-            dir_name = sanitize_filename(enex_name.replace('.enex', ''))
-            print(f"   - {enex_name}: {note_count} notes in {self.output_dir}/{dir_name}/")
+            # Remove .enex extension for display
+            notebook_name = enex_name.replace('.enex', '')
+            # Calculate padding for alignment (max 40 chars for name)
+            padding = max(1, 40 - len(notebook_name))
+            dots = '.' * padding
+            print(f"  {notebook_name} {dots} {note_count} notes")
