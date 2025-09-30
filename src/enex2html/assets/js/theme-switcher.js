@@ -30,7 +30,7 @@
      * @param {string} theme - The theme name to apply
      */
     function applyTheme(theme) {
-        const link = document.querySelector('link[rel="stylesheet"][href*="css/"]');
+        const link = document.getElementById('theme-stylesheet');
         if (link) {
             // Update the href to point to the selected theme, handling relative paths
             link.href = link.href.replace(/css\/(light|dark)\.css/, `css/${theme}.css`);
@@ -68,7 +68,7 @@
     function updateToggleButton(theme) {
         const button = document.getElementById('theme-toggle');
         if (button) {
-            button.textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
+            button.textContent = theme === 'dark' ? '☀️' : '🌙';
             button.setAttribute('aria-label', `Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`);
         }
     }

@@ -55,7 +55,7 @@ class TemplateEngine:
         kwargs["theme"] = self.theme
 
         # Add theme button text (shows the theme you'll switch TO, not current theme)
-        kwargs["theme_button_text"] = "☀️ Light" if self.theme == "dark" else "🌙 Dark"
+        kwargs["theme_button_text"] = "☀️" if self.theme == "dark" else "🌙"
 
         result = template
         for key, value in kwargs.items():
@@ -77,6 +77,13 @@ class TemplateEngine:
 
         css_dir.mkdir(parents=True, exist_ok=True)
         js_dir.mkdir(parents=True, exist_ok=True)
+
+        # Copy common CSS file to assets/css/
+        common_css_file = assets_dir_source / "css" / "common.css"
+        if common_css_file.exists():
+            shutil.copy2(common_css_file, css_dir / "common.css")
+        else:
+            raise FileNotFoundError(f"Common CSS file not found: {common_css_file}")
 
         # Copy all theme CSS files to assets/css/
         for theme_name in ["light", "dark"]:
