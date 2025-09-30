@@ -4,6 +4,7 @@ from typing import Any
 
 from .templates import TemplateEngine
 from .utils import sanitize_filename
+from . import __version__ as VERSION, __name__ as NAME, __url__ as URL
 
 
 class HtmlGenerator:
@@ -14,8 +15,15 @@ class HtmlGenerator:
 
         Args:
             engine: TemplateEngine instance for rendering templates
+            version: Version string to display in footer (defaults to package version)
+            github_url: GitHub repository URL (defaults to package URL)
+            project_name: Project name to display in footer (defaults to package name)
         """
         self.engine = engine
+        # Use provided values or fall back to package constants
+        self.version = VERSION
+        self.github_url = URL
+        self.project_name = NAME
 
     def note(self, note: dict[str, Any], enex_name: str) -> str:
         """Generate HTML for a single note.
@@ -31,7 +39,13 @@ class HtmlGenerator:
         display_name = enex_name.replace(".enex", "")
 
         return self.engine.render(
-            "note", title=note["title"], enex_name=display_name, content=note["content"]
+            "note",
+            title=note["title"],
+            enex_name=display_name,
+            content=note["content"],
+            version=self.version,
+            github_url=self.github_url,
+            project_name=self.project_name,
         )
 
     def index(self, enex_name: str, notes: list[dict[str, Any]]) -> str:
@@ -58,6 +72,9 @@ class HtmlGenerator:
             enex_name=display_name,
             note_count=len(notes),
             note_links="\n".join(note_links),
+            version=self.version,
+            github_url=self.github_url,
+            project_name=self.project_name,
         )
 
     def toc(self, notebooks: list[tuple[str, int]]) -> str:
@@ -87,4 +104,7 @@ class HtmlGenerator:
             collection_links="\n".join(collection_links),
             total_collections=len(notebooks),
             total_notes=total_notes,
+            version=self.version,
+            github_url=self.github_url,
+            project_name=self.project_name,
         )
