@@ -2,9 +2,11 @@
 
 from typing import Any
 
+from . import __name__ as pkg_name
+from . import __url__ as pkg_url
+from . import __version__ as pkg_version
 from .templates import TemplateEngine
 from .utils import sanitize_filename
-from . import __version__ as VERSION, __name__ as NAME, __url__ as URL
 
 
 class HtmlGenerator:
@@ -21,9 +23,9 @@ class HtmlGenerator:
         """
         self.engine = engine
         # Use provided values or fall back to package constants
-        self.version = VERSION
-        self.github_url = URL
-        self.project_name = NAME
+        self.version = pkg_version
+        self.github_url = pkg_url
+        self.project_name = pkg_name
 
     def note(self, note: dict[str, Any], enex_name: str) -> str:
         """Generate HTML for a single note.
